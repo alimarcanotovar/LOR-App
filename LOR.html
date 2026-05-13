@@ -33,7 +33,7 @@
   .logo-hint2 { font-size: 10px; color: #aaa; margin-top: 2px; }
   .logo-clear-btn { display: none; position: relative; z-index: 3; background: none; border: 1.5px solid #C9A84C; color: #C9A84C; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; padding: 3px 10px; margin-top: 6px; }
   .sig-preview-wrap { background: #fafbfc; border: 1.5px solid #e0e4ea; border-radius: 9px; padding: 14px; margin-bottom: 12px; min-height: 72px; display: flex; align-items: center; justify-content: center; }
-  .sig-text { font-family: 'Dancing Script', cursive; font-size: 36px; color: #0a0a0a; display: none; }
+  .sig-text { font-family: 'Dancing Script', cursive; font-size: 28px; color: #0a0a0a; display: none; max-width: 100%; word-break: break-word; }
   .sig-placeholder { font-size: 13px; color: #ccc; font-style: italic; }
   .pdf-btn { width: 100%; background: #0a0a0a; color: #C9A84C; border: 2px solid #C9A84C; border-radius: 10px; padding: 16px; font-size: 16px; font-weight: 900; cursor: pointer; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; -webkit-appearance: none; }
   .pdf-btn:active { background: #1a1a1a; }
@@ -245,16 +245,23 @@ function generatePDF() {
       // ── CURSIVE SIGNATURE ─────────────────────
       // Render the Dancing Script font via an off-screen canvas
       const offCanvas = document.createElement('canvas');
-      offCanvas.width  = 400;
+      offCanvas.width  = 600;
       offCanvas.height = 100;
       const ctx = offCanvas.getContext('2d');
       ctx.clearRect(0, 0, offCanvas.width, offCanvas.height);
-      ctx.font = "72px 'Dancing Script', cursive";
+      // Scale font size down for longer names so nothing gets cut off
+      const baseFontSize = 56;
+      let sigFontSize = baseFontSize;
+      ctx.font = sigFontSize + "px 'Dancing Script', cursive";
+      while (ctx.measureText(name).width > offCanvas.width - 20 && sigFontSize > 28) {
+        sigFontSize -= 2;
+        ctx.font = sigFontSize + "px 'Dancing Script', cursive";
+      }
       ctx.fillStyle = '#0a0a0a';
       ctx.textBaseline = 'middle';
       ctx.fillText(name, 10, 55);
       const sigData = offCanvas.toDataURL('image/png');
-      doc.addImage(sigData, 'PNG', ML - 6, y, 220, 65);
+      doc.addImage(sigData, 'PNG', ML - 6, y, 240, 65);
       y += 70;
 
       // ── GOLD LINE ────────────────────────────
