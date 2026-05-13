@@ -186,7 +186,7 @@ function generatePDF() {
       // ── CLIENT LOGO ──────────────────────────
       if (clientLogoData) {
         const STRIP = 110;
-        doc.setFillColor(252, 249, 240);
+        doc.setFillColor(255, 255, 255);
         doc.rect(0, 0, W, STRIP, 'F');
         doc.setFillColor(...GOLD);
         doc.rect(ML, STRIP - 1, CW, 1, 'F');
@@ -288,10 +288,6 @@ function generatePDF() {
       // ── RJ LOGO — centered BENEATH owner+date ─
       const logoW = 160, logoH = 52;
       const logoX = W / 2 - logoW / 2;
-      doc.setFillColor(252, 249, 240);
-      doc.roundedRect(logoX - 16, y - 6, logoW + 32, logoH + 12, 6, 6, 'F');
-      doc.setDrawColor(...GOLD); doc.setLineWidth(0.8);
-      doc.roundedRect(logoX - 16, y - 6, logoW + 32, logoH + 12, 6, 6, 'S');
       doc.addImage('data:image/png;base64,' + RJ_LOGO, 'PNG', logoX, y, logoW, logoH);
 
       // ── FOOTER ───────────────────────────────
