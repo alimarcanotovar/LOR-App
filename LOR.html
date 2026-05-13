@@ -217,29 +217,22 @@ function generatePDF() {
       y += 28;
 
       // ── PARA 1 ───────────────────────────────
-      const p1 = 'Please be advised that the account of ' + company + ' has been forwarded to the office of Ryan & Jacobs for resolution.';
+      const p1 = 'This letter is to inform you that your account has been forwarded to the office of Ryan & Jacobs for resolution. Effective immediately, all communication, payments, and correspondence regarding this matter must be directed through the office of Ryan & Jacobs.';
       const p1L = doc.splitTextToSize(p1, CW);
       doc.setFont('times', 'normal'); doc.setFontSize(12); doc.setTextColor(...DGRAY);
       doc.text(p1L, ML, y, { lineHeightFactor: 1.85 });
       y += p1L.length * 12 * 1.85 + 18;
 
       // ── PARA 2 ───────────────────────────────
-      const p2 = 'Effective immediately, all communication, payments, and correspondence regarding this matter must be directed through the office of Ryan & Jacobs. Please refrain from contacting ' + company + ' directly concerning this account.';
+      const p2 = 'Do not attempt to contact ' + company + ' any further. You must contact the office of Ryan & Jacobs directly to resolve this matter.';
       const p2L = doc.splitTextToSize(p2, CW);
       doc.setFont('times', 'bold'); doc.setFontSize(12); doc.setTextColor(...BLACK);
       doc.text(p2L, ML, y, { lineHeightFactor: 1.85 });
-      y += p2L.length * 12 * 1.85 + 18;
-
-      // ── PARA 3 ───────────────────────────────
-      const p3 = 'You are required to contact the office of Ryan & Jacobs directly to discuss resolution of this matter.';
-      const p3L = doc.splitTextToSize(p3, CW);
-      doc.setFont('times', 'bold'); doc.setFontSize(12); doc.setTextColor(...BLACK);
-      doc.text(p3L, ML, y, { lineHeightFactor: 1.85 });
-      y += p3L.length * 12 * 1.85 + 30;
+      y += p2L.length * 12 * 1.85 + 30;
 
       // ── CLOSING ──────────────────────────────
       doc.setFont('times', 'normal'); doc.setFontSize(12); doc.setTextColor(...DGRAY);
-      doc.text('Sincerely,', ML, y);
+      doc.text('Thanks,', ML, y);
       y += 18;
 
       // ── CURSIVE SIGNATURE ─────────────────────
