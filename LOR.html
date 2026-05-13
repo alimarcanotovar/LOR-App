@@ -24,7 +24,6 @@
     box-shadow: 0 8px 40px rgba(0,0,0,0.5);
   }
 
-  /* TOP BAR */
   .top-bar {
     background: #0a0a0a;
     border-bottom: 3px solid #C9A84C;
@@ -41,7 +40,6 @@
   }
   .top-bar-text p { font-size: 10px; color: rgba(255,255,255,0.38); margin-top: 3px; }
 
-  /* BODY */
   .body { padding: 20px 18px 24px; }
 
   .section-label {
@@ -69,7 +67,6 @@
 
   .divider { height: 1px; background: #ebebeb; margin: 18px 0; }
 
-  /* LOGO ZONE */
   .logo-zone {
     position: relative; border: 2px dashed #d0d8e4;
     border-radius: 10px; background: #f5f8fc;
@@ -98,7 +95,6 @@
     cursor: pointer; padding: 3px 10px; margin-top: 6px;
   }
 
-  /* SIGNATURE PREVIEW */
   .sig-preview-wrap {
     background: #fafbfc; border: 1.5px solid #e0e4ea;
     border-radius: 9px; padding: 14px;
@@ -107,7 +103,6 @@
   }
   .sig-placeholder { font-size: 13px; color: #ccc; font-style: italic; }
 
-  /* PDF BUTTON */
   .pdf-btn {
     width: 100%; background: #0a0a0a;
     color: #C9A84C; border: 2px solid #C9A84C;
@@ -144,7 +139,6 @@
 
   <div class="body">
 
-    <!-- CLIENT LOGO -->
     <div class="section-label">Your Company Logo <span style="font-weight:400;color:#bbb;">(Optional)</span></div>
     <div class="logo-zone" id="logo-zone">
       <input type="file" class="logo-file-input" id="logo-input" accept="image/*" onchange="handleLogo(event)">
@@ -159,7 +153,6 @@
 
     <div class="divider"></div>
 
-    <!-- INFO -->
     <div class="section-label">Your Information</div>
 
     <label>Your Full Name</label>
@@ -180,7 +173,6 @@
 
     <div class="divider"></div>
 
-    <!-- AUTO SIGNATURE -->
     <div class="section-label">Your Signature</div>
     <p style="font-size:12px;color:#888;margin-bottom:10px;line-height:1.5;">
       Your signature is generated automatically as you type your name above.
@@ -240,28 +232,21 @@ function updateSig() {
   const name   = document.getElementById('client-name').value.trim();
   const canvas = document.getElementById('sig-canvas');
   const ph     = document.getElementById('sig-placeholder');
-
-  if (!name) {
-    canvas.style.display = 'none'; ph.style.display = 'block'; return;
-  }
-  ph.style.display     = 'none';
-  canvas.style.display = 'block';
-
-  const wrap    = document.getElementById('sig-preview-wrap');
+  if (!name) { canvas.style.display = 'none'; ph.style.display = 'block'; return; }
+  ph.style.display = 'none'; canvas.style.display = 'block';
+  const wrap = document.getElementById('sig-preview-wrap');
   canvas.width  = wrap.clientWidth - 28;
   canvas.height = 64;
-
-  const ctx      = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const fontSize = Math.min(40, Math.max(24, canvas.width / (name.length * 0.72)));
-  ctx.font       = 'italic ' + fontSize + 'px Georgia, serif';
-  ctx.fillStyle  = '#0a0a0a';
+  ctx.font = 'italic ' + fontSize + 'px Georgia, serif';
+  ctx.fillStyle = '#0a0a0a';
   ctx.textBaseline = 'middle';
   const tw = ctx.measureText(name).width;
   const x  = Math.max(8, (canvas.width - tw) / 2);
   const y  = canvas.height / 2 + 3;
   ctx.fillText(name, x, y);
-  // Underline swoosh
   ctx.beginPath();
   ctx.moveTo(x - 2, y + fontSize * 0.36);
   ctx.bezierCurveTo(
@@ -272,7 +257,6 @@ function updateSig() {
   ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 1.2; ctx.stroke();
 }
 
-// ── DATE ──────────────────────────────────────
 function fmtDate() {
   return new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
 }
@@ -296,211 +280,167 @@ function generatePDF() {
     try {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit: 'pt', format: 'letter' });
-      const W = 612, H = 792, ML = 72, MR = 72, CW = W - ML - MR;
+      const W = 612, H = 792, ML = 80, MR = 80, CW = W - ML - MR;
       const dateStr = fmtDate();
 
-      const BLACK  = [10,  10,  10];
-      const GOLD   = [201, 168, 76];
-      const OFFWHT = [250, 247, 238];
-      const MGRAY  = [120, 115, 105];
-      const DGRAY  = [50,  48,  44];
-      const WHITE  = [255, 255, 255];
-      const RULE   = [215, 205, 180];
+      const BLACK = [10,  10,  10];
+      const GOLD  = [201, 168, 76];
+      const MGRAY = [110, 108, 100];
+      const DGRAY = [40,  38,  35];
+      const RULE  = [210, 198, 165];
 
       let y = 0;
 
-      // ══════════════════════════════════
-      // CLIENT LOGO — top of page, large
-      // ══════════════════════════════════
+      // ══════════════════════════════════════
+      // CLIENT LOGO — top center, prominent
+      // ══════════════════════════════════════
       if (clientLogoData) {
-        const STRIP = 100;
-        doc.setFillColor(...OFFWHT);
+        const STRIP = 110;
+        // Light gold-tinted background
+        doc.setFillColor(252, 249, 240);
         doc.rect(0, 0, W, STRIP, 'F');
+        // Thin gold line at bottom of strip
         doc.setFillColor(...GOLD);
-        doc.rect(0, STRIP - 2, W, 2, 'F');
-        const mH = 72, mW = 260;
+        doc.rect(ML, STRIP - 1, CW, 1, 'F');
+
+        const mH = 80, mW = 280;
         let lw = clientLogoW || 300, lh = clientLogoH || 100;
         const sc = Math.min(mH / lh, mW / lw, 1); lw *= sc; lh *= sc;
         doc.addImage(clientLogoData, clientLogoFmt,
           W / 2 - lw / 2, (STRIP - lh) / 2, lw, lh);
-        y = STRIP;
+        y = STRIP + 50;
+      } else {
+        y = 70;
       }
 
-      // ══════════════════════════════════
-      // DOCUMENT TITLE BLOCK
-      // ══════════════════════════════════
-      y += 44;
-      // Big centered title
+      // ══════════════════════════════════════
+      // TITLE — "Letter of Representation"
+      // ══════════════════════════════════════
       doc.setFont('times', 'bold');
-      doc.setFontSize(26);
+      doc.setFontSize(28);
       doc.setTextColor(...BLACK);
       doc.text('Letter of Representation', W / 2, y, { align: 'center' });
-      y += 10;
+      y += 12;
 
-      // Gold rule under title
+      // Gold rule under title — full content width
       doc.setFillColor(...GOLD);
-      doc.rect(ML, y, CW, 1.5, 'F');
-      y += 8;
+      doc.rect(ML, y, CW, 2, 'F');
+      y += 36;
 
-      // Date right aligned
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(...MGRAY);
-      doc.text(dateStr, W - MR, y, { align: 'right' });
-      y += 32;
-
-      // ══════════════════════════════════
+      // ══════════════════════════════════════
       // SALUTATION
-      // ══════════════════════════════════
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(11);
+      // ══════════════════════════════════════
+      doc.setFont('times', 'normal');
+      doc.setFontSize(12);
       doc.setTextColor(...DGRAY);
       doc.text('To Whom It May Concern,', ML, y);
-      y += 30;
+      y += 28;
 
-      // ══════════════════════════════════
-      // BODY PARAGRAPHS
-      // ══════════════════════════════════
-      const paraStyle = () => {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(11);
-        doc.setTextColor(...DGRAY);
-      };
-
-      const boldStyle = () => {
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
-        doc.setTextColor(...BLACK);
-      };
-
-      // Helper to write a paragraph with bold phrases
-      // Para 1
-      paraStyle();
-      const p1 = 'This letter is to inform you that the account of ' + company +
-        ' has been forwarded to the office of Ryan & Jacobs for resolution.';
-      const p1lines = doc.splitTextToSize(p1, CW);
-      doc.text(p1lines, ML, y, { lineHeightFactor: 1.8 });
-      y += p1lines.length * 11 * 1.8 + 16;
-
-      // Para 2
-      boldStyle();
-      const p2 = 'All communication, payments, and correspondence must go through the office of Ryan & Jacobs.';
-      const p2lines = doc.splitTextToSize(p2, CW);
-      doc.text(p2lines, ML, y, { lineHeightFactor: 1.8 });
-      y += p2lines.length * 11 * 1.8 + 16;
-
-      // Para 3
-      boldStyle();
-      const p3 = 'Do not attempt to contact ' + company + ' any further.';
-      const p3lines = doc.splitTextToSize(p3, CW);
-      doc.text(p3lines, ML, y, { lineHeightFactor: 1.8 });
-      y += p3lines.length * 11 * 1.8 + 16;
-
-      // Para 4
-      boldStyle();
-      const p4 = 'You must contact the office of Ryan & Jacobs directly to resolve this matter.';
-      const p4lines = doc.splitTextToSize(p4, CW);
-      doc.text(p4lines, ML, y, { lineHeightFactor: 1.8 });
-      y += p4lines.length * 11 * 1.8 + 28;
-
-      // ══════════════════════════════════
-      // CONTACT BOX — black gold bordered
-      // ══════════════════════════════════
-      const boxH = 62;
-      doc.setFillColor(...BLACK);
-      doc.roundedRect(ML, y, CW, boxH, 4, 4, 'F');
-      doc.setFillColor(...GOLD);
-      doc.roundedRect(ML, y, CW, boxH, 4, 4, 'S');
-      doc.setLineWidth(1.5);
-      doc.setDrawColor(...GOLD);
-      doc.roundedRect(ML, y, CW, boxH, 4, 4, 'S');
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.setTextColor(...GOLD);
-      doc.text('RYAN & JACOBS — CONTACT INFORMATION', W / 2, y + 18, { align: 'center' });
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(220, 210, 180);
-      doc.text('All inquiries must be directed to Ryan & Jacobs exclusively.', W / 2, y + 34, { align: 'center' });
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.setTextColor(...GOLD);
-      doc.text('www.ryanandjacobs.com', W / 2, y + 50, { align: 'center' });
-      y += boxH + 32;
-
-      // ══════════════════════════════════
-      // SIGNATURE BLOCK
-      // ══════════════════════════════════
-      const sigBlockY = Math.max(y, H - 200);
-
-      // "Sincerely" closing
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(11);
+      // ══════════════════════════════════════
+      // PARAGRAPH 1 — normal weight
+      // ══════════════════════════════════════
+      doc.setFont('times', 'normal');
+      doc.setFontSize(12);
       doc.setTextColor(...DGRAY);
-      doc.text('Sincerely,', ML, sigBlockY);
+      const p1 = 'Please be advised that the account of ' + company +
+        ' has been forwarded to the office of Ryan & Jacobs for resolution.';
+      const p1L = doc.splitTextToSize(p1, CW);
+      doc.text(p1L, ML, y, { lineHeightFactor: 1.85 });
+      y += p1L.length * 12 * 1.85 + 18;
 
-      // Signature from canvas
+      // ══════════════════════════════════════
+      // PARAGRAPH 2 — bold
+      // ══════════════════════════════════════
+      doc.setFont('times', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...BLACK);
+      const p2 = 'Effective immediately, all communication, payments, and correspondence ' +
+        'regarding this matter must be directed through the office of Ryan & Jacobs. ' +
+        'Please refrain from contacting ' + company + ' directly concerning this account.';
+      const p2L = doc.splitTextToSize(p2, CW);
+      doc.text(p2L, ML, y, { lineHeightFactor: 1.85 });
+      y += p2L.length * 12 * 1.85 + 18;
+
+      // ══════════════════════════════════════
+      // PARAGRAPH 3 — bold
+      // ══════════════════════════════════════
+      doc.setFont('times', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...BLACK);
+      const p3 = 'You are required to contact the office of Ryan & Jacobs directly ' +
+        'to discuss resolution of this matter.';
+      const p3L = doc.splitTextToSize(p3, CW);
+      doc.text(p3L, ML, y, { lineHeightFactor: 1.85 });
+      y += p3L.length * 12 * 1.85 + 36;
+
+      // ══════════════════════════════════════
+      // CLOSING
+      // ══════════════════════════════════════
+      doc.setFont('times', 'normal');
+      doc.setFontSize(12);
+      doc.setTextColor(...DGRAY);
+      doc.text('Sincerely,', ML, y);
+      y += 14;
+
+      // ══════════════════════════════════════
+      // SIGNATURE BLOCK
+      // ══════════════════════════════════════
+      // Signature image from canvas
       const sigCanvas = document.getElementById('sig-canvas');
       if (sigCanvas.style.display !== 'none' && sigCanvas.width > 0) {
         const sigData = sigCanvas.toDataURL('image/png');
-        doc.addImage(sigData, 'PNG', ML - 4, sigBlockY + 8, 200, 50);
+        doc.addImage(sigData, 'PNG', ML - 6, y + 4, 200, 52);
       }
+      y += 62;
 
-      // Signature line
-      const sigLineY = sigBlockY + 68;
+      // Gold signature line
       doc.setDrawColor(...GOLD);
-      doc.setLineWidth(0.8);
-      doc.line(ML, sigLineY, ML + 220, sigLineY);
+      doc.setLineWidth(1);
+      doc.line(ML, y, ML + 220, y);
+      y += 12;
 
-      doc.setFont('helvetica', 'bold');
+      // Name and title
+      doc.setFont('times', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...BLACK);
+      doc.text('Ryan & Jacobs', ML, y);
+      y += 16;
+
+      doc.setFont('times', 'normal');
       doc.setFontSize(10);
-      doc.setTextColor(...BLACK);
-      doc.text(name, ML, sigLineY + 14);
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
       doc.setTextColor(...MGRAY);
-      doc.text(company, ML, sigLineY + 27);
-      doc.text('Authorized Representative', ML, sigLineY + 39);
+      doc.text('On behalf of ' + name + ', ' + company, ML, y);
+      y += 14;
+      doc.text(dateStr, ML, y);
 
-      // Date on right
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(...MGRAY);
-      doc.text('Date:', W - MR - 100, sigLineY + 14);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...BLACK);
-      doc.text(dateStr, W - MR - 100, sigLineY + 27);
-
-      // ══════════════════════════════════
-      // FOOTER
-      // ══════════════════════════════════
-      // Gold top line
+      // ══════════════════════════════════════
+      // FOOTER — black bar with RJ logo
+      // ══════════════════════════════════════
+      const footY = H - 52;
+      // Thin gold line above footer
       doc.setFillColor(...GOLD);
-      doc.rect(0, H - 48, W, 1.5, 'F');
+      doc.rect(0, footY, W, 2, 'F');
       // Black bar
       doc.setFillColor(...BLACK);
-      doc.rect(0, H - 46, W, 46, 'F');
+      doc.rect(0, footY + 2, W, 50, 'F');
 
-      // RJ logo small in footer
-      doc.addImage('data:image/png;base64,' + RJ_LOGO, 'PNG', ML, H - 38, 70, 24);
+      // RJ logo left in footer
+      doc.addImage('data:image/png;base64,' + RJ_LOGO, 'PNG', ML, footY + 10, 72, 26);
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7);
-      doc.setTextColor(...GOLD);
-      doc.text('RYAN & JACOBS', W / 2, H - 28, { align: 'center' });
+      // Confidential text centered
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6.5);
-      doc.setTextColor(100, 95, 80);
-      doc.text('This letter is confidential and legally binding upon execution.  ·  ' + dateStr,
-        W / 2, H - 16, { align: 'center' });
+      doc.setFontSize(7);
+      doc.setTextColor(110, 105, 90);
+      doc.text('This letter is confidential and intended solely for the named recipient.',
+        W / 2, footY + 24, { align: 'center' });
+      doc.text('Ryan & Jacobs  ·  All Rights Reserved',
+        W / 2, footY + 38, { align: 'center' });
 
-      // ── Save ─────────────────────────
+      // Save
       const filename = 'LOR_' + company.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') + '.pdf';
       doc.save(filename);
 
-      // ── Email ────────────────────────
+      // Email
       const toList = [email, agent].filter(Boolean).join(',');
       if (toList) {
         const sub  = encodeURIComponent('Letter of Representation — ' + company);
