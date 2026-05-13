@@ -28,13 +28,33 @@
   .logo-file-input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2; }
   .logo-file-input.hidden { pointer-events: none; }
   .logo-preview-img { display: none; max-height: 60px; max-width: 200px; object-fit: contain; margin: 0 auto 6px; }
-  .logo-icon  { font-size: 28px; }
-  .logo-hint  { font-size: 12px; font-weight: 700; color: #C9A84C; margin-top: 4px; }
+  .logo-icon { font-size: 28px; }
+  .logo-hint { font-size: 12px; font-weight: 700; color: #C9A84C; margin-top: 4px; }
   .logo-hint2 { font-size: 10px; color: #aaa; margin-top: 2px; }
   .logo-clear-btn { display: none; position: relative; z-index: 3; background: none; border: 1.5px solid #C9A84C; color: #C9A84C; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; padding: 3px 10px; margin-top: 6px; }
-  .sig-preview-wrap { background: #fafbfc; border: 1.5px solid #e0e4ea; border-radius: 9px; padding: 14px; margin-bottom: 12px; min-height: 72px; display: flex; align-items: center; justify-content: center; }
-  .sig-text { font-family: 'Dancing Script', cursive; font-size: 28px; color: #0a0a0a; display: none; max-width: 100%; word-break: break-word; }
+
+  /* Sig toggle tabs */
+  .sig-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+  .sig-tab {
+    flex: 1; padding: 9px; text-align: center;
+    border: 1.5px solid #e0e4ea; border-radius: 8px;
+    font-size: 12px; font-weight: 700; color: #999;
+    cursor: pointer; transition: all 0.15s; background: #fafbfc;
+  }
+  .sig-tab.active { border-color: #C9A84C; color: #0a0a0a; background: #fdf9ee; }
+
+  /* Auto sig preview */
+  .sig-auto-wrap { background: #fafbfc; border: 1.5px solid #e0e4ea; border-radius: 9px; padding: 14px; margin-bottom: 8px; min-height: 72px; display: flex; align-items: center; justify-content: center; }
+  .sig-auto-text { font-family: 'Dancing Script', cursive; font-size: 28px; color: #0a0a0a; display: none; max-width: 100%; word-break: break-word; }
   .sig-placeholder { font-size: 13px; color: #ccc; font-style: italic; }
+
+  /* Draw sig pad */
+  .sig-draw-wrap { position: relative; border: 2px dashed #d0d8e4; border-radius: 9px; background: #fafbfc; overflow: hidden; margin-bottom: 8px; transition: border-color 0.2s; }
+  .sig-draw-wrap.signed { border-color: #C9A84C; background: #fff; }
+  #sig-canvas { width: 100%; height: 130px; display: block; touch-action: none; cursor: crosshair; }
+  .sig-ghost { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #ccc; font-weight: 600; pointer-events: none; transition: opacity 0.2s; }
+  .sig-clear-btn { background: none; border: 1.5px solid #C9A84C; color: #C9A84C; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; padding: 3px 10px; margin-bottom: 4px; }
+
   .pdf-btn { width: 100%; background: #0a0a0a; color: #C9A84C; border: 2px solid #C9A84C; border-radius: 10px; padding: 16px; font-size: 16px; font-weight: 900; cursor: pointer; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; -webkit-appearance: none; }
   .pdf-btn:active { background: #1a1a1a; }
   .pdf-btn:disabled { background: #444; border-color: #666; color: #666; cursor: not-allowed; }
@@ -72,7 +92,7 @@
 
     <div class="section-label">Your Information</div>
     <label>Your Full Name</label>
-    <input type="text" id="client-name" placeholder="e.g. Maria Lopez" oninput="updateSig()" autocomplete="name">
+    <input type="text" id="client-name" placeholder="e.g. Maria Lopez" oninput="updateAutoSig()" autocomplete="name">
     <label>Your Company Name</label>
     <input type="text" id="client-company" placeholder="e.g. Lopez Roofing LLC" autocomplete="organization">
     <label>Your Email <span class="opt">— you will receive a copy of the PDF</span></label>
@@ -82,11 +102,31 @@
 
     <div class="divider"></div>
 
-    <div class="section-label">Your Signature Preview</div>
-    <p style="font-size:12px;color:#888;margin-bottom:10px;line-height:1.5;">Your signature is generated from your name as you type above.</p>
-    <div class="sig-preview-wrap">
-      <div class="sig-placeholder" id="sig-placeholder">Start typing your name to see your signature</div>
-      <div class="sig-text" id="sig-text"></div>
+    <div class="section-label">Signature</div>
+    <p style="font-size:12px;color:#888;margin-bottom:10px;line-height:1.5;">Choose how you want to sign — generate from your name, draw it yourself, or do both.</p>
+
+    <!-- TABS -->
+    <div class="sig-tabs">
+      <div class="sig-tab active" id="tab-auto" onclick="switchSigTab('auto')">✦ Auto Generate</div>
+      <div class="sig-tab" id="tab-draw" onclick="switchSigTab('draw')">✏️ Draw</div>
+      <div class="sig-tab" id="tab-both" onclick="switchSigTab('both')">Both</div>
+    </div>
+
+    <!-- AUTO SIG -->
+    <div id="sig-auto-section">
+      <div class="sig-auto-wrap">
+        <div class="sig-placeholder" id="sig-placeholder">Type your name above to generate</div>
+        <div class="sig-auto-text" id="sig-auto-text"></div>
+      </div>
+    </div>
+
+    <!-- DRAW SIG -->
+    <div id="sig-draw-section" style="display:none;">
+      <div class="sig-draw-wrap" id="sig-draw-wrap">
+        <canvas id="sig-canvas"></canvas>
+        <div class="sig-ghost" id="sig-ghost">✍️ Sign here with your finger</div>
+      </div>
+      <button class="sig-clear-btn" onclick="clearDraw()">✕ Clear</button>
     </div>
 
     <div class="divider"></div>
@@ -122,7 +162,6 @@ function handleLogo(e) {
   };
   reader.readAsDataURL(file);
 }
-
 function clearLogo(e) {
   e.stopPropagation(); clientLogoData = null;
   document.getElementById('logo-preview').style.display = 'none';
@@ -134,19 +173,65 @@ function clearLogo(e) {
   document.getElementById('logo-input').classList.remove('hidden');
 }
 
-// ── LIVE CURSIVE SIGNATURE PREVIEW ───────────
-function updateSig() {
+// ── SIG TABS ─────────────────────────────────
+let currentTab = 'auto';
+
+function switchSigTab(tab) {
+  currentTab = tab;
+  ['auto','draw','both'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  document.getElementById('sig-auto-section').style.display = (tab === 'auto' || tab === 'both') ? 'block' : 'none';
+  document.getElementById('sig-draw-section').style.display = (tab === 'draw' || tab === 'both') ? 'block' : 'none';
+  if (tab === 'draw' || tab === 'both') initDraw();
+}
+
+// ── AUTO SIGNATURE ────────────────────────────
+function updateAutoSig() {
   const name = document.getElementById('client-name').value.trim();
-  const sigText = document.getElementById('sig-text');
-  const ph = document.getElementById('sig-placeholder');
-  if (!name) {
-    sigText.style.display = 'none';
-    ph.style.display = 'block';
-  } else {
-    sigText.textContent = name;
-    sigText.style.display = 'block';
-    ph.style.display = 'none';
-  }
+  const txt  = document.getElementById('sig-auto-text');
+  const ph   = document.getElementById('sig-placeholder');
+  if (!name) { txt.style.display = 'none'; ph.style.display = 'block'; }
+  else { txt.textContent = name; txt.style.display = 'block'; ph.style.display = 'none'; }
+}
+
+// ── DRAW SIGNATURE ────────────────────────────
+let drawCtx = null, drawActive = false, drawHasData = false;
+
+function initDraw() {
+  if (drawCtx) return;
+  const canvas = document.getElementById('sig-canvas');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = canvas.offsetWidth  * dpr;
+  canvas.height = canvas.offsetHeight * dpr;
+  drawCtx = canvas.getContext('2d');
+  drawCtx.scale(dpr, dpr);
+  drawCtx.strokeStyle = '#0a0a0a';
+  drawCtx.lineWidth   = 2.5;
+  drawCtx.lineCap     = 'round';
+  drawCtx.lineJoin    = 'round';
+
+  const pos = e => {
+    const r = canvas.getBoundingClientRect();
+    const s = e.touches ? e.touches[0] : e;
+    return { x: s.clientX - r.left, y: s.clientY - r.top };
+  };
+  canvas.addEventListener('mousedown', e => { drawActive=true; const p=pos(e); drawCtx.beginPath(); drawCtx.moveTo(p.x,p.y); document.getElementById('sig-ghost').style.opacity='0'; });
+  canvas.addEventListener('mousemove', e => { if(!drawActive)return; const p=pos(e); drawCtx.lineTo(p.x,p.y); drawCtx.stroke(); drawHasData=true; document.getElementById('sig-draw-wrap').classList.add('signed'); });
+  canvas.addEventListener('mouseup',    () => drawActive=false);
+  canvas.addEventListener('mouseleave', () => drawActive=false);
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); drawActive=true; const p=pos(e); drawCtx.beginPath(); drawCtx.moveTo(p.x,p.y); document.getElementById('sig-ghost').style.opacity='0'; }, {passive:false});
+  canvas.addEventListener('touchmove',  e => { e.preventDefault(); if(!drawActive)return; const p=pos(e); drawCtx.lineTo(p.x,p.y); drawCtx.stroke(); drawHasData=true; document.getElementById('sig-draw-wrap').classList.add('signed'); }, {passive:false});
+  canvas.addEventListener('touchend',   e => { e.preventDefault(); drawActive=false; }, {passive:false});
+}
+
+function clearDraw() {
+  if (!drawCtx) return;
+  const c = document.getElementById('sig-canvas');
+  drawCtx.clearRect(0,0,c.width,c.height);
+  drawHasData = false;
+  document.getElementById('sig-draw-wrap').classList.remove('signed');
+  document.getElementById('sig-ghost').style.opacity = '1';
 }
 
 // ── DATE ─────────────────────────────────────
@@ -164,6 +249,7 @@ function generatePDF() {
   if (!name)    { alert('Please enter your full name.');     document.getElementById('client-name').focus();    return; }
   if (!company) { alert('Please enter your company name.');  document.getElementById('client-company').focus(); return; }
   if (!email)   { alert('Please enter your email address.'); document.getElementById('client-email').focus();   return; }
+  if (currentTab === 'draw' && !drawHasData)  { alert('Please draw your signature.'); return; }
 
   const btn = document.getElementById('pdf-btn');
   btn.disabled = true;
@@ -183,7 +269,7 @@ function generatePDF() {
 
       let y = 0;
 
-      // ── CLIENT LOGO ──────────────────────────
+      // CLIENT LOGO
       if (clientLogoData) {
         const STRIP = 110;
         doc.setFillColor(255, 255, 255);
@@ -199,91 +285,85 @@ function generatePDF() {
         y = 70;
       }
 
-      // ── TITLE ────────────────────────────────
-      doc.setFont('times', 'bold');
-      doc.setFontSize(28);
-      doc.setTextColor(...BLACK);
+      // TITLE
+      doc.setFont('times', 'bold'); doc.setFontSize(28); doc.setTextColor(...BLACK);
       doc.text('Letter of Representation', W / 2, y, { align: 'center' });
       y += 12;
-      doc.setFillColor(...GOLD);
-      doc.rect(ML, y, CW, 2, 'F');
+      doc.setFillColor(...GOLD); doc.rect(ML, y, CW, 2, 'F');
       y += 36;
 
-      // ── SALUTATION ───────────────────────────
-      doc.setFont('times', 'normal');
-      doc.setFontSize(12);
-      doc.setTextColor(...DGRAY);
+      // SALUTATION
+      doc.setFont('times', 'normal'); doc.setFontSize(12); doc.setTextColor(...DGRAY);
       doc.text('To Whom It May Concern,', ML, y);
       y += 28;
 
-      // ── PARA 1 ───────────────────────────────
+      // PARA 1
       const p1 = 'This letter is to inform you that your account has been forwarded to the office of Ryan & Jacobs for resolution. Effective immediately, all communication, payments, and correspondence regarding this matter must be directed through the office of Ryan & Jacobs.';
       const p1L = doc.splitTextToSize(p1, CW);
       doc.setFont('times', 'normal'); doc.setFontSize(12); doc.setTextColor(...DGRAY);
       doc.text(p1L, ML, y, { lineHeightFactor: 1.85 });
       y += p1L.length * 12 * 1.85 + 18;
 
-      // ── PARA 2 ───────────────────────────────
+      // PARA 2
       const p2 = 'Do not attempt to contact ' + company + ' any further. You must contact the office of Ryan & Jacobs directly to resolve this matter.';
       const p2L = doc.splitTextToSize(p2, CW);
       doc.setFont('times', 'bold'); doc.setFontSize(12); doc.setTextColor(...BLACK);
       doc.text(p2L, ML, y, { lineHeightFactor: 1.85 });
       y += p2L.length * 12 * 1.85 + 30;
 
-      // ── CLOSING ──────────────────────────────
+      // CLOSING
       doc.setFont('times', 'normal'); doc.setFontSize(12); doc.setTextColor(...DGRAY);
       doc.text('Thanks,', ML, y);
       y += 18;
 
-      // ── CURSIVE SIGNATURE ─────────────────────
-      // Render the Dancing Script font via an off-screen canvas
-      const offCanvas = document.createElement('canvas');
-      offCanvas.width  = 600;
-      offCanvas.height = 100;
-      const ctx = offCanvas.getContext('2d');
-      ctx.clearRect(0, 0, offCanvas.width, offCanvas.height);
-      // Scale font size down for longer names so nothing gets cut off
-      const baseFontSize = 56;
-      let sigFontSize = baseFontSize;
-      ctx.font = sigFontSize + "px 'Dancing Script', cursive";
-      while (ctx.measureText(name).width > offCanvas.width - 20 && sigFontSize > 28) {
-        sigFontSize -= 2;
-        ctx.font = sigFontSize + "px 'Dancing Script', cursive";
+      // SIGNATURE
+      if (currentTab === 'auto' || currentTab === 'both') {
+        // Render cursive via offscreen canvas
+        const offC = document.createElement('canvas');
+        offC.width = 600; offC.height = 100;
+        const ctx = offC.getContext('2d');
+        let fs = 56;
+        ctx.font = fs + "px 'Dancing Script', cursive";
+        while (ctx.measureText(name).width > offC.width - 20 && fs > 28) { fs -= 2; ctx.font = fs + "px 'Dancing Script', cursive"; }
+        ctx.fillStyle = '#0a0a0a'; ctx.textBaseline = 'middle';
+        ctx.fillText(name, 10, 55);
+        doc.addImage(offC.toDataURL('image/png'), 'PNG', ML - 6, y, 240, 65);
+        y += 68;
       }
-      ctx.fillStyle = '#0a0a0a';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(name, 10, 55);
-      const sigData = offCanvas.toDataURL('image/png');
-      doc.addImage(sigData, 'PNG', ML - 6, y, 240, 65);
-      y += 70;
 
-      // ── GOLD LINE ────────────────────────────
+      if (currentTab === 'draw' || currentTab === 'both') {
+        if (drawHasData) {
+          const sigData = document.getElementById('sig-canvas').toDataURL('image/png');
+          doc.addImage(sigData, 'PNG', ML - 6, y, 240, 65);
+          y += 68;
+        }
+      }
+
+      // GOLD LINE
       doc.setDrawColor(...GOLD); doc.setLineWidth(1);
       doc.line(ML, y, ML + 240, y);
       y += 14;
 
-      // ── NAME + OWNER ─────────────────────────
+      // NAME left, DATE right — same line
       doc.setFont('times', 'bold'); doc.setFontSize(11); doc.setTextColor(...BLACK);
       doc.text(name, ML, y);
+      doc.setFont('times', 'bold'); doc.setFontSize(11); doc.setTextColor(...BLACK);
+      doc.text(dateStr, W - MR, y, { align: 'right' });
       y += 14;
+
+      // OWNER left, DATE label right — same line
       doc.setFont('times', 'normal'); doc.setFontSize(10); doc.setTextColor(...MGRAY);
       doc.text('Owner', ML, y);
-      y += 14;
-
-      // ── DATE (right side, same level as name) ─
       doc.setFont('times', 'normal'); doc.setFontSize(10); doc.setTextColor(...MGRAY);
-      doc.text('Date:', W - MR - 120, y - 28);
-      doc.setFont('times', 'bold'); doc.setFontSize(10); doc.setTextColor(...BLACK);
-      doc.text(dateStr, W - MR - 120, y - 14);
+      doc.text('Date', W - MR, y, { align: 'right' });
+      y += 36;
 
-      y += 28;
-
-      // ── RJ LOGO — centered BENEATH owner+date ─
+      // RJ LOGO centered beneath
       const logoW = 160, logoH = 52;
       const logoX = W / 2 - logoW / 2;
       doc.addImage('data:image/png;base64,' + RJ_LOGO, 'PNG', logoX, y, logoW, logoH);
 
-      // ── FOOTER ───────────────────────────────
+      // FOOTER
       doc.setFillColor(...GOLD); doc.rect(0, H - 52, W, 2, 'F');
       doc.setFillColor(...BLACK); doc.rect(0, H - 50, W, 50, 'F');
       doc.addImage('data:image/png;base64,' + RJ_LOGO, 'PNG', ML, H - 40, 68, 24);
@@ -291,11 +371,9 @@ function generatePDF() {
       doc.text('This letter is confidential and intended solely for the named recipient.', W / 2, H - 28, { align: 'center' });
       doc.text('Ryan & Jacobs  ·  All Rights Reserved', W / 2, H - 15, { align: 'center' });
 
-      // ── SAVE ─────────────────────────────────
       const filename = 'LOR_' + company.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') + '.pdf';
       doc.save(filename);
 
-      // ── EMAIL ────────────────────────────────
       const toList = [email, agent].filter(Boolean).join(',');
       if (toList) {
         const sub  = encodeURIComponent('Letter of Representation — ' + company);
